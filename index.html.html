@@ -202,5 +202,40 @@
     }
 </script>
 
-</body>
-</html>
+<div class="section">
+    <h3>📲 데이터 동기화 (기기 간 이동)</h3>
+    <button onclick="exportData()" class="btn-secondary" style="background: #555;">기록 내보내기 (복사)</button>
+    <button onclick="importData()" class="btn-secondary" style="background: #555; margin-top: 5px;">기록 가져오기 (붙여넣기)</button>
+</div>
+
+<script>
+    // ... (기존 코드들) ...
+
+    // 데이터 내보내기: 현재 데이터를 문자열로 변환해 클립보드에 복사
+    function exportData() {
+        const dataStr = JSON.stringify(myPhrases);
+        navigator.clipboard.writeText(dataStr).then(() => {
+            alert("공부 기록이 복사되었습니다! 카톡 등으로 폰에 전달하세요.");
+        }).catch(err => {
+            alert("복사 실패: 직접 복사해주세요 -> " + dataStr);
+        });
+    }
+
+    // 데이터 가져오기: 전달받은 문자열을 LocalStorage에 저장
+    function importData() {
+        const dataStr = prompt("복사해온 데이터를 여기에 붙여넣으세요.");
+        if (dataStr) {
+            try {
+                const parsed = JSON.parse(dataStr);
+                if (Array.isArray(parsed)) {
+                    myPhrases = parsed;
+                    localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
+                    alert("데이터 동기화 완료! 이제 폰에서도 볼 수 있어요.");
+                    location.reload(); // 화면 새로고침
+                }
+            } catch (e) {
+                alert("잘못된 데이터 형식입니다.");
+            }
+        }
+    }
+</script>
