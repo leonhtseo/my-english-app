@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My English Vibe Trax</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary-color: #bb86fc;
+            --secondary-color: #03dac6;
+            --text-color: #e0e0e0;
+            --accent-color: #cf6679;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 { text-align: center; color: var(--primary-color); }
+
+        /* 섹션 스타일 */
+        .section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* 입력창 스타일 */
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2c2c2c;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary-color);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover { opacity: 0.8; }
+
+        .btn-secondary { background: var(--secondary-color); }
+
+        /* 문법 추천 영역 */
+        #grammar-box {
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 15px;
+            font-style: italic;
+        }
+
+        /* 카드 리스트 스타일 */
+        .card {
+            background: #2c2c2c;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            cursor: pointer;
+            border-left: 5px solid #555;
+            transition: all 0.3s;
+        }
+
+        .card.level-1 { border-left-color: #4caf50; }
+        .card.level-3 { border-left-color: #2196f3; box-shadow: 0 0 10px rgba(33, 150, 243, 0.3); }
+        .card.level-5 { border-left-color: #ffd700; background: #3a3311; }
+
+        .details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #555; color: #bbb; }
+        .count { font-size: 0.8rem; color: var(--primary-color); margin-top: 5px; }
+
+        .active .details { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>English Vibe 🚀</h1>
+
+    <div class="section">
+        <h3>💡 오늘의 문법 패턴</h3>
+        <div id="grammar-box">버튼을 눌러 오늘의 패턴을 확인하세요!</div>
+        <button onclick="getRandomGrammar()" class="btn-secondary">랜덤 문법 추천</button>
+    </div>
+
+    <div class="section">
+        <h3>📝 새 표현 기록</h3>
+        <input type="text" id="phrase-input" placeholder="핵심 표현 (예: Have a crush on)">
+        <textarea id="memo-input" rows="3" placeholder="나만의 메모와 예문을 적어주세요..."></textarea>
+        <button onclick="savePhrase()">복습 리스트에 저장</button>
+    </div>
+
+    <div class="section">
+        <h3>🔥 랜덤 복습 카드</h3>
+        <div id="random-card-area">
+            <p style="text-align: center; color: #888;">리스트에 표현을 추가하고 복습을 시작하세요!</p>
+        </div>
+        <button onclick="showRandomCard()" class="btn-secondary">다음 랜덤 카드 뽑기 🎲</button>
+    </div>
+</div>
+
+<script>
+    // 샘플 문법 데이터
+    const grammarPatterns = [
+        { p: "Have you ever + p.p~?", d: "~해본 적 있니? (경험 물어보기)" },
+        { p: "I'm used to + ing~", d: "~하는 것에 익숙해. (상태)" },
+        { p: "It's worth + ing~", d: "~할 가치가 있어." },
+        { p: "I was about to~", d: "막 ~하려던 참이었어." },
+        { p: "No wonder~", d: "어쩐지 ~하더라 / ~하는 게 당연해." }
+    ];
+
+    let myPhrases = JSON.parse(localStorage.getItem('myPhrases')) || [];
+
+    // 문법 랜덤 추천
+    function getRandomGrammar() {
+        const random = grammarPatterns[Math.floor(Math.random() * grammarPatterns.length)];
+        document.getElementById('grammar-box').innerHTML = `<strong>${random.p}</strong><br><small>${random.d}</small>`;
+    }
+
+    // 표현 저장
+    function savePhrase() {
+        const phrase = document.getElementById('phrase-input').value;
+        const memo = document.getElementById('memo-input').value;
+
+        if(!phrase) return alert("표현을 입력해주세요!");
+
+        myPhrases.push({ phrase, memo, count: 0, id: Date.now() });
+        localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
+        
+        document.getElementById('phrase-input').value = '';
+        document.getElementById('memo-input').value = '';
+        alert("저장 완료!");
+    }
+
+    // 랜덤 카드 보여주기
+    function showRandomCard() {
+        if(myPhrases.length === 0) return alert("저장된 표현이 없습니다.");
+        
+        const area = document.getElementById('random-card-area');
+        const randomIdx = Math.floor(Math.random() * myPhrases.length);
+        const item = myPhrases[randomIdx];
+
+        // 복습 횟수에 따른 레벨 클래스
+        let levelClass = '';
+        if(item.count >= 5) levelClass = 'level-5';
+        else if(item.count >= 3) levelClass = 'level-3';
+        else if(item.count >= 1) levelClass = 'level-1';
+
+        area.innerHTML = `
+            <div class="card ${levelClass}" onclick="this.classList.toggle('active')">
+                <div style="font-weight: bold; font-size: 1.2rem;">${item.phrase}</div>
+                <div class="count">복습 횟수: ${item.count}회</div>
+                <div class="details">${item.memo.replace(/\n/g, '<br>')}</div>
+                <button onclick="finishReview(event, ${item.id})">복습 완료 체크 ✅</button>
+            </div>
+        `;
+    }
+
+    // 복습 완료 처리
+    function finishReview(event, id) {
+        event.stopPropagation(); // 카드 클릭 이벤트 전파 방지
+        const idx = myPhrases.findIndex(p => p.id === id);
+        myPhrases[idx].count += 1;
+        localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
+
+        // 폭죽 효과
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+        alert(`${myPhrases[idx].count}회차 복습 완료! 멋져요!`);
+        showRandomCard(); // 다음 카드로 갱신
+    }
+</script>
+
+</body>
+</html>
