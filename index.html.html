@@ -3,239 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My English Vibe Trax</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Levit Picker V5.1 - 데이터 상태 중심형 추첨기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --primary-color: #bb86fc;
-            --secondary-color: #03dac6;
-            --text-color: #e0e0e0;
-            --accent-color: #cf6679;
+            --primary: #6366f1; --primary-dark: #4f46e5; --bg: #f3f4f6;
+            --white: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; --danger: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+        .app-card {
+            width: 100%; max-width: 440px; background: var(--white);
+            border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            padding: 28px;
         }
 
-        body {
-            font-family: 'Pretendard', -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+        
+        .input-section { display: flex; gap: 8px; margin-bottom: 12px; }
+        input[type="text"] {
+            flex: 1; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px;
+            font-size: 0.95rem; outline: none; transition: 0.2s;
         }
+        input[type="text"]:focus { border-color: var(--primary); }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
+        .btn { border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-add { background: var(--primary); color: white; padding: 0 18px; }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 0.85rem; color: var(--text-sub); }
+        .last-pick-box { font-weight: 600; color: #4b5563; }
+        .last-pick-box span { color: var(--primary); font-weight: 800; }
+        
+        .list-wrapper {
+            background: #f9fafb; border-radius: 12px; padding: 6px;
+            max-height: 180px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #f1f5f9;
         }
-
-        h1 { text-align: center; color: var(--primary-color); }
-
-        /* 섹션 스타일 */
-        .section {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        .item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: white; border-radius: 8px; margin-bottom: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
+        .item-name-group { display: flex; align-items: center; gap: 8px; }
+        .item-name { font-weight: 600; font-size: 0.95rem; }
+        .item-count-tag { font-size: 0.75rem; color: var(--primary); background: #eef2ff; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .btn-del { background: none; color: #d1d5db; font-size: 1.1rem; }
+        .btn-del:hover { color: var(--danger); }
 
-        /* 입력창 스타일 */
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #2c2c2c;
-            color: white;
-            box-sizing: border-box;
+        .display-area {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 16px; color: white;
+            min-height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
         }
+        .result-container { display: flex; align-items: baseline; gap: 6px; }
+        #resultName { font-size: 1.4rem; font-weight: 800; }
+        #resultCount { font-size: 0.85rem; opacity: 0.9; font-weight: 400; }
+        .display-label { font-size: 0.75rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: var(--primary-color);
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-
-        button:hover { opacity: 0.8; }
-
-        .btn-secondary { background: var(--secondary-color); }
-
-        /* 문법 추천 영역 */
-        #grammar-box {
-            border-left: 4px solid var(--secondary-color);
-            padding-left: 15px;
-            font-style: italic;
-        }
-
-        /* 카드 리스트 스타일 */
-        .card {
-            background: #2c2c2c;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            cursor: pointer;
-            border-left: 5px solid #555;
-            transition: all 0.3s;
-        }
-
-        .card.level-1 { border-left-color: #4caf50; }
-        .card.level-3 { border-left-color: #2196f3; box-shadow: 0 0 10px rgba(33, 150, 243, 0.3); }
-        .card.level-5 { border-left-color: #ffd700; background: #3a3311; }
-
-        .details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #555; color: #bbb; }
-        .count { font-size: 0.8rem; color: var(--primary-color); margin-top: 5px; }
-
-        .active .details { display: block; }
+        .btn-main { width: 100%; padding: 15px; font-size: 1rem; background: var(--primary); color: white; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-reset { width: 100%; padding: 8px; background: transparent; color: var(--text-sub); font-size: 0.8rem; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>English Vibe 🚀</h1>
+<div class="app-card">
+    <header>
+        <h1>🎯 Levit Picker</h1>
+    </header>
 
-    <div class="section">
-        <h3>💡 오늘의 문법 패턴</h3>
-        <div id="grammar-box">버튼을 눌러 오늘의 패턴을 확인하세요!</div>
-        <button onclick="getRandomGrammar()" class="btn-secondary">랜덤 문법 추천</button>
+    <div class="input-section">
+        <input type="text" id="itemInput" placeholder="추가할 항목 입력..." onkeypress="if(event.keyCode==13) addItem()">
+        <button class="btn btn-add" onclick="addItem()">추가</button>
     </div>
 
-    <div class="section">
-        <h3>📝 새 표현 기록</h3>
-        <input type="text" id="phrase-input" placeholder="핵심 표현 (예: Have a crush on)">
-        <textarea id="memo-input" rows="3" placeholder="나만의 메모와 예문을 적어주세요..."></textarea>
-        <button onclick="savePhrase()">복습 리스트에 저장</button>
+    <div class="controls">
+        <div class="last-pick-box">last pick : <span id="lastPickValue">-</span></div>
+        <span id="totalStats">항목: 0개</span>
     </div>
 
-    <div class="section">
-        <h3>🔥 랜덤 복습 카드</h3>
-        <div id="random-card-area">
-            <p style="text-align: center; color: #888;">리스트에 표현을 추가하고 복습을 시작하세요!</p>
+    <div id="itemList" class="list-wrapper"></div>
+
+    <div class="display-area">
+        <div class="display-label">Now Selected</div>
+        <div class="result-container">
+            <div id="resultName">READY</div>
+            <div id="resultCount"></div>
         </div>
-        <button onclick="showRandomCard()" class="btn-secondary">다음 랜덤 카드 뽑기 🎲</button>
     </div>
+
+    <button class="btn btn-main" onclick="pickOne()">추첨 시작!</button>
+    <button class="btn btn-reset" onclick="resetCountsOnly()">당첨 횟수만 초기화</button>
 </div>
 
 <script>
-    // 샘플 문법 데이터
-    const grammarPatterns = [
-        { p: "Have you ever + p.p~?", d: "~해본 적 있니? (경험 물어보기)" },
-        { p: "I'm used to + ing~", d: "~하는 것에 익숙해. (상태)" },
-        { p: "It's worth + ing~", d: "~할 가치가 있어." },
-        { p: "I was about to~", d: "막 ~하려던 참이었어." },
-        { p: "No wonder~", d: "어쩐지 ~하더라 / ~하는 게 당연해." }
-    ];
+    // 상태 초기화 및 안전망 가동 (구버전 데이터 구조 완벽 방어)
+    let state = JSON.parse(localStorage.getItem('levitPickerV5')) || { items: [], counts: {}, currentPick: '-', lastPick: '-' };
+    if (!state.items) state.items = [];
+    if (!state.counts) state.counts = {};
+    if (!state.currentPick) state.currentPick = '-';
+    if (!state.lastPick) state.lastPick = '-';
 
-    let myPhrases = JSON.parse(localStorage.getItem('myPhrases')) || [];
-
-    // 문법 랜덤 추천
-    function getRandomGrammar() {
-        const random = grammarPatterns[Math.floor(Math.random() * grammarPatterns.length)];
-        document.getElementById('grammar-box').innerHTML = `<strong>${random.p}</strong><br><small>${random.d}</small>`;
+    function saveData() {
+        localStorage.setItem('levitPickerV5', JSON.stringify(state));
+        updateUI();
     }
 
-    // 표현 저장
-    function savePhrase() {
-        const phrase = document.getElementById('phrase-input').value;
-        const memo = document.getElementById('memo-input').value;
-
-        if(!phrase) return alert("표현을 입력해주세요!");
-
-        myPhrases.push({ phrase, memo, count: 0, id: Date.now() });
-        localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
+    // UI 동기화를 단 한 곳에서 일괄 처리 (안정성 확보)
+    function updateUI() {
+        document.getElementById('totalStats').innerText = `항목: ${state.items.length}개`;
+        document.getElementById('lastPickValue').innerText = state.lastPick;
         
-        document.getElementById('phrase-input').value = '';
-        document.getElementById('memo-input').value = '';
-        alert("저장 완료!");
-    }
-
-    // 랜덤 카드 보여주기
-    function showRandomCard() {
-        if(myPhrases.length === 0) return alert("저장된 표현이 없습니다.");
-        
-        const area = document.getElementById('random-card-area');
-        const randomIdx = Math.floor(Math.random() * myPhrases.length);
-        const item = myPhrases[randomIdx];
-
-        // 복습 횟수에 따른 레벨 클래스
-        let levelClass = '';
-        if(item.count >= 5) levelClass = 'level-5';
-        else if(item.count >= 3) levelClass = 'level-3';
-        else if(item.count >= 1) levelClass = 'level-1';
-
-        area.innerHTML = `
-            <div class="card ${levelClass}" onclick="this.classList.toggle('active')">
-                <div style="font-weight: bold; font-size: 1.2rem;">${item.phrase}</div>
-                <div class="count">복습 횟수: ${item.count}회</div>
-                <div class="details">${item.memo.replace(/\n/g, '<br>')}</div>
-                <button onclick="finishReview(event, ${item.id})">복습 완료 체크 ✅</button>
-            </div>
-        `;
-    }
-
-    // 복습 완료 처리
-    function finishReview(event, id) {
-        event.stopPropagation(); // 카드 클릭 이벤트 전파 방지
-        const idx = myPhrases.findIndex(p => p.id === id);
-        myPhrases[idx].count += 1;
-        localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
-
-        // 폭죽 효과
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-        });
-
-        alert(`${myPhrases[idx].count}회차 복습 완료! 멋져요!`);
-        showRandomCard(); // 다음 카드로 갱신
-    }
-</script>
-
-<div class="section">
-    <h3>📲 데이터 동기화 (기기 간 이동)</h3>
-    <button onclick="exportData()" class="btn-secondary" style="background: #555;">기록 내보내기 (복사)</button>
-    <button onclick="importData()" class="btn-secondary" style="background: #555; margin-top: 5px;">기록 가져오기 (붙여넣기)</button>
-</div>
-
-<script>
-    // ... (기존 코드들) ...
-
-    // 데이터 내보내기: 현재 데이터를 문자열로 변환해 클립보드에 복사
-    function exportData() {
-        const dataStr = JSON.stringify(myPhrases);
-        navigator.clipboard.writeText(dataStr).then(() => {
-            alert("공부 기록이 복사되었습니다! 카톡 등으로 폰에 전달하세요.");
-        }).catch(err => {
-            alert("복사 실패: 직접 복사해주세요 -> " + dataStr);
-        });
-    }
-
-    // 데이터 가져오기: 전달받은 문자열을 LocalStorage에 저장
-    function importData() {
-        const dataStr = prompt("복사해온 데이터를 여기에 붙여넣으세요.");
-        if (dataStr) {
-            try {
-                const parsed = JSON.parse(dataStr);
-                if (Array.isArray(parsed)) {
-                    myPhrases = parsed;
-                    localStorage.setItem('myPhrases', JSON.stringify(myPhrases));
-                    alert("데이터 동기화 완료! 이제 폰에서도 볼 수 있어요.");
-                    location.reload(); // 화면 새로고침
-                }
-            } catch (e) {
-                alert("잘못된 데이터 형식입니다.");
-            }
+        if (state.currentPick === '-') {
+            document.getElementById('resultName').innerText = 'READY';
+            document.getElementById('resultCount').innerText = '';
+        } else {
+            document.getElementById('resultName').innerText = state.currentPick;
+            document.getElementById('resultCount').innerText = `(${state.counts[state.currentPick] || 0}회)`;
         }
     }
+
+    function addItem() {
+        const input = document.getElementById('itemInput');
+        const val = input.value.trim();
+        if (val && !state.items.includes(val)) {
+            state.items.push(val);
+            state.counts[val] = state.counts[val] || 0;
+            saveData(); 
+            renderList();
+        }
+        input.value = '';
+    }
+
+    function deleteItem(val) {
+        state.items = state.items.filter(i => i !== val);
+        delete state.counts[val];
+        // 삭제된 항목 처리 예외 방어
+        if (state.lastPick === val) state.lastPick = '-';
+        if (state.currentPick === val) state.currentPick = '-';
+        saveData(); 
+        renderList();
+    }
+
+    function renderList() {
+        const listDiv = document.getElementById('itemList');
+        listDiv.innerHTML = state.items.map(item => `
+            <div class="item-row">
+                <div class="item-name-group">
+                    <span class="item-name">${item}</span>
+                    <span class="item-count-tag">${state.counts[item] || 0}회</span>
+                </div>
+                <button class="btn btn-del" onclick="deleteItem('${item}')">&times;</button>
+            </div>
+        `).join('') || '<div style="text-align:center; padding: 20px; color:#d1d5db; font-size:0.8rem;">항목을 추가해주세요.</div>';
+    }
+
+    function pickOne() {
+        if (state.items.length === 0) return alert('항목을 먼저 추가해주세요!');
+        
+        // [수정 핵심] 화면 텍스트가 아닌, 내부 데이터(state.currentPick)를 기준으로 직전 항목 이관
+        if (state.currentPick && state.currentPick !== '-') {
+            state.lastPick = state.currentPick;
+        }
+
+        // 무작위 추첨
+        const idx = Math.floor(Math.random() * state.items.length);
+        const selected = state.items[idx];
+
+        // 상태 데이터 갱신
+        state.counts[selected] = (state.counts[selected] || 0) + 1;
+        state.currentPick = selected;
+        
+        saveData(); 
+        renderList();
+    }
+
+    function resetCountsOnly() {
+        if(confirm('리스트는 유지하고 모든 당첨 횟수와 직전 기록을 초기화할까요?')) {
+            state.items.forEach(item => {
+                state.counts[item] = 0;
+            });
+            state.currentPick = '-';
+            state.lastPick = '-';
+            saveData(); 
+            renderList();
+        }
+    }
+
+    // 초기 실행 환경 구동
+    renderList();
+    updateUI();
 </script>
+</body>
+</html>
