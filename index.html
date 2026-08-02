@@ -1,200 +1,569 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Levit Picker V5.1 - 데이터 상태 중심형 추첨기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1; --primary-dark: #4f46e5; --bg: #f3f4f6;
-            --white: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; --danger: #ef4444;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background: var(--bg); color: var(--text-main); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스마트 랜덤 추첨기</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --primary: #4a6fa5;
+      --primary-hover: #3b5984;
+      --accent: #e63946;
+      --text-main: #2b2d42;
+      --text-sub: #6c757d;
+      --border-color: #e9ecef;
+      --shadow: 0 8px 24px rgba(149, 157, 165, 0.15);
+    }
 
-        .app-card {
-            width: 100%; max-width: 440px; background: var(--white);
-            border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.08);
-            padding: 28px;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
 
-        header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 1.6rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-        
-        .input-section { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"] {
-            flex: 1; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 10px;
-            font-size: 0.95rem; outline: none; transition: 0.2s;
-        }
-        input[type="text"]:focus { border-color: var(--primary); }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-        .btn { border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-add { background: var(--primary); color: white; padding: 0 18px; }
+    .app-container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
 
-        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 0.85rem; color: var(--text-sub); }
-        .last-pick-box { font-weight: 600; color: #4b5563; }
-        .last-pick-box span { color: var(--primary); font-weight: 800; }
-        
-        .list-wrapper {
-            background: #f9fafb; border-radius: 12px; padding: 6px;
-            max-height: 180px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #f1f5f9;
-        }
-        .item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 12px; background: white; border-radius: 8px; margin-bottom: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-        .item-name-group { display: flex; align-items: center; gap: 8px; }
-        .item-name { font-weight: 600; font-size: 0.95rem; }
-        .item-count-tag { font-size: 0.75rem; color: var(--primary); background: #eef2ff; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .btn-del { background: none; color: #d1d5db; font-size: 1.1rem; }
-        .btn-del:hover { color: var(--danger); }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
 
-        .display-area {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 16px; padding: 16px; text-align: center; margin-bottom: 16px; color: white;
-            min-height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
-        }
-        .result-container { display: flex; align-items: baseline; gap: 6px; }
-        #resultName { font-size: 1.4rem; font-weight: 800; }
-        #resultCount { font-size: 0.85rem; opacity: 0.9; font-weight: 400; }
-        .display-label { font-size: 0.75rem; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .header h1 {
+      font-size: 1.5rem;
+      color: var(--text-main);
+      font-weight: 700;
+    }
 
-        .btn-main { width: 100%; padding: 15px; font-size: 1rem; background: var(--primary); color: white; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-reset { width: 100%; padding: 8px; background: transparent; color: var(--text-sub); font-size: 0.8rem; text-decoration: underline; }
-    </style>
+    .header p {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* 항목 입력 및 리스트 영역 */
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-add {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* 항목 리스트 화면 확장 (요청사항 반영: 화면에 좀 더 길게 보이도록 수정) */
+    .item-list-container {
+      max-height: 380px; /*기존보다 길게 확장*/
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #fafafa;
+      padding: 8px;
+      margin-bottom: 20px;
+    }
+
+    .item-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .item-list-container::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+
+    .item-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      border: 1px solid #f0f0f0;
+    }
+
+    .item-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .item-name {
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .item-stats {
+      font-size: 0.8rem;
+      color: var(--primary);
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: #bbb;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .btn-del:hover {
+      color: var(--accent);
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 0.88rem;
+      padding: 24px 0;
+    }
+
+    /* 추첨 옵션 & 버튼 */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .checkbox-label {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .btn-draw {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-draw:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* 메인 결과 영역 (요청사항 반영: 글씨 크기 기존 대비 1~2pt 축소 -> 22px / 1.38rem 설정) */
+    .result-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #eef3f9 0%, #f4f6f8 100%);
+      border-radius: 14px;
+      text-align: center;
+      border: 1px dashed var(--primary);
+    }
+
+    .result-title {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .result-display {
+      font-size: 1.38rem; /* 기존 1.5rem(24px)에서 약 1~2pt 감소된 22px 크기 */
+      font-weight: 800;
+      color: var(--primary);
+      min-height: 32px;
+      word-break: break-all;
+    }
+
+    /* 누적 내역 영역 (요청사항 반영: 내역 쭉 보이기, 복사 버튼, 글씨 크기 1pt 확대) */
+    .history-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .btn-action-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      background: #f1f3f5;
+      border: 1px solid #dee2e6;
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-sm:hover {
+      background: #e9ecef;
+    }
+
+    .btn-copy {
+      background: #e8f0fe;
+      color: var(--primary);
+      border-color: #d0e1fd;
+    }
+
+    .btn-copy:hover {
+      background: #d8e6fe;
+    }
+
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      list-style: none;
+    }
+
+    /* 요청사항 반영: 내역 글씨 크기 기존(14px/0.88rem) 대비 1pt 확대 -> 15px / 0.94rem */
+    .history-item {
+      font-size: 0.94rem; 
+      padding: 6px 8px;
+      border-bottom: 1px solid #f8f9fa;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-index {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.85rem;
+      min-width: 24px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
 
-<div class="app-card">
-    <header>
-        <h1>🎯 Levit Picker</h1>
-    </header>
-
-    <div class="input-section">
-        <input type="text" id="itemInput" placeholder="추가할 항목 입력..." onkeypress="if(event.keyCode==13) addItem()">
-        <button class="btn btn-add" onclick="addItem()">추가</button>
+  <div class="app-container">
+    <div class="header">
+      <h1>🎲 스마트 랜덤 추첨기</h1>
+      <p>항목을 추가하고 자유롭게 추첨해 보세요</p>
     </div>
+
+    <div class="section-title">
+      <span>항목 관리</span>
+    </div>
+    <div class="input-group">
+      <input type="text" id="itemInput" placeholder="추가할 항목 입력..." onkeyup="if(event.key==='Enter') addItem()">
+      <button class="btn-add" onclick="addItem()">추가</button>
+    </div>
+
+    <div class="item-list-container" id="itemList">
+      </div>
 
     <div class="controls">
-        <div class="last-pick-box">last pick : <span id="lastPickValue">-</span></div>
-        <span id="totalStats">항목: 0개</span>
+      <label class="checkbox-label">
+        <input type="checkbox" id="allowDuplicate" checked>
+        중복 뽑기 허용
+      </label>
+      <button class="btn-sm" onclick="resetCounts()">당첨 횟수 초기화</button>
     </div>
 
-    <div id="itemList" class="list-wrapper"></div>
+    <button class="btn-draw" onclick="drawItem()">추첨하기</button>
 
-    <div class="display-area">
-        <div class="display-label">Now Selected</div>
-        <div class="result-container">
-            <div id="resultName">READY</div>
-            <div id="resultCount"></div>
+    <div class="result-box">
+      <div class="result-title">CURRENT PICK</div>
+      <div class="result-display" id="resultDisplay">READY</div>
+    </div>
+
+    <div class="history-section">
+      <div class="history-header">
+        <span class="section-title" style="margin-bottom:0;">추첨 내역 기록</span>
+        <div class="btn-action-group">
+          <button class="btn-sm btn-copy" onclick="copyHistory()">내역 복사</button>
+          <button class="btn-sm" onclick="clearHistory()">내역 초기화</button>
         </div>
+      </div>
+      <ul class="history-list" id="historyList">
+        </ul>
     </div>
+  </div>
 
-    <button class="btn btn-main" onclick="pickOne()">추첨 시작!</button>
-    <button class="btn btn-reset" onclick="resetCountsOnly()">당첨 횟수만 초기화</button>
-</div>
+  <div class="toast" id="toast">복사되었습니다!</div>
 
-<script>
-    // 상태 초기화 및 안전망 가동 (구버전 데이터 구조 완벽 방어)
-    let state = JSON.parse(localStorage.getItem('levitPickerV5')) || { items: [], counts: {}, currentPick: '-', lastPick: '-' };
-    if (!state.items) state.items = [];
-    if (!state.counts) state.counts = {};
-    if (!state.currentPick) state.currentPick = '-';
-    if (!state.lastPick) state.lastPick = '-';
+  <script>
+    // 순수 데이터 상태 관리 객체 (State-driven)
+    let state = {
+      items: ["점심 메뉴 선택", "커피 쏘기", "발표자 정하기"],
+      stats: {}, // { "항목명": 당첨횟수 }
+      history: [], // 누적 뽑힌 내역 배열
+      allowDuplicate: true
+    };
 
-    function saveData() {
-        localStorage.setItem('levitPickerV5', JSON.stringify(state));
-        updateUI();
-    }
-
-    // UI 동기화를 단 한 곳에서 일괄 처리 (안정성 확보)
-    function updateUI() {
-        document.getElementById('totalStats').innerText = `항목: ${state.items.length}개`;
-        document.getElementById('lastPickValue').innerText = state.lastPick;
-        
-        if (state.currentPick === '-') {
-            document.getElementById('resultName').innerText = 'READY';
-            document.getElementById('resultCount').innerText = '';
-        } else {
-            document.getElementById('resultName').innerText = state.currentPick;
-            document.getElementById('resultCount').innerText = `(${state.counts[state.currentPick] || 0}회)`;
+    // 초기화 및 localStorage 로드
+    function init() {
+      const saved = localStorage.getItem('randomApp_State_v2');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch(e) {
+          console.error("저장 데이터 로드 실패", e);
         }
+      }
+      
+      document.getElementById('allowDuplicate').checked = state.allowDuplicate !== false;
+      document.getElementById('allowDuplicate').addEventListener('change', (e) => {
+        state.allowDuplicate = e.target.checked;
+        saveState();
+      });
+
+      render();
     }
 
+    function saveState() {
+      localStorage.setItem('randomApp_State_v2', JSON.stringify(state));
+    }
+
+    // 항목 추가
     function addItem() {
-        const input = document.getElementById('itemInput');
-        const val = input.value.trim();
-        if (val && !state.items.includes(val)) {
-            state.items.push(val);
-            state.counts[val] = state.counts[val] || 0;
-            saveData(); 
-            renderList();
-        }
+      const input = document.getElementById('itemInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      if (!state.items.includes(val)) {
+        state.items.push(val);
         input.value = '';
+        saveState();
+        render();
+      } else {
+        showToast("이미 존재하는 항목입니다.");
+      }
     }
 
-    function deleteItem(val) {
-        state.items = state.items.filter(i => i !== val);
-        delete state.counts[val];
-        // 삭제된 항목 처리 예외 방어
-        if (state.lastPick === val) state.lastPick = '-';
-        if (state.currentPick === val) state.currentPick = '-';
-        saveData(); 
-        renderList();
+    // 항목 삭제
+    function removeItem(name) {
+      state.items = state.items.filter(item => item !== name);
+      saveState();
+      render();
     }
 
-    function renderList() {
-        const listDiv = document.getElementById('itemList');
-        listDiv.innerHTML = state.items.map(item => `
-            <div class="item-row">
-                <div class="item-name-group">
-                    <span class="item-name">${item}</span>
-                    <span class="item-count-tag">${state.counts[item] || 0}회</span>
-                </div>
-                <button class="btn btn-del" onclick="deleteItem('${item}')">&times;</button>
+    // 당첨 횟수 리셋
+    function resetCounts() {
+      state.stats = {};
+      saveState();
+      render();
+      showToast("당첨 횟수가 리셋되었습니다.");
+    }
+
+    // 추첨 실행
+    function drawItem() {
+      if (state.items.length === 0) {
+        showToast("추첨할 항목을 먼저 추가해 주세요.");
+        return;
+      }
+
+      let pool = [...state.items];
+
+      // 중복 불허 시: 이미 뽑힌 항목은 제외 (모두 뽑혔으면 리셋 알림)
+      if (!state.allowDuplicate) {
+        const pickedSet = new Set(state.history);
+        pool = pool.filter(item => !pickedSet.has(item));
+
+        if (pool.length === 0) {
+          showToast("모든 항목이 이미 뽑혔습니다! (중복 허용 해제 상태)");
+          return;
+        }
+      }
+
+      // 랜덤 선택
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      const selected = pool[randomIndex];
+
+      // 상태 업데이트
+      state.stats[selected] = (state.stats[selected] || 0) + 1;
+      state.history.unshift(selected); // 최신 뽑힌 항목이 상단에 누적
+
+      saveState();
+
+      // 애니메이션 효과 후 출력
+      const display = document.getElementById('resultDisplay');
+      display.style.opacity = '0.3';
+      setTimeout(() => {
+        display.innerText = selected;
+        display.style.opacity = '1';
+        render();
+      }, 150);
+    }
+
+    // 내역 복사하기 (클립보드 API)
+    function copyHistory() {
+      if (state.history.length === 0) {
+        showToast("복사할 추첨 내역이 없습니다.");
+        return;
+      }
+
+      const textToCopy = state.history
+        .map((item, idx) => `${state.history.length - idx}. ${item}`)
+        .reverse()
+        .join('\n');
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast("추첨 내역이 복사되었습니다!");
+      }).catch(() => {
+        showToast("복사에 실패했습니다.");
+      });
+    }
+
+    // 내역 초기화
+    function clearHistory() {
+      state.history = [];
+      document.getElementById('resultDisplay').innerText = "READY";
+      saveState();
+      render();
+      showToast("추첨 내역이 초기화되었습니다.");
+    }
+
+    // UI 화면 렌더링
+    function render() {
+      // 1. 항목 리스트 렌더링
+      const itemListEl = document.getElementById('itemList');
+      if (state.items.length === 0) {
+        itemListEl.innerHTML = `<div class="empty-msg">등록된 항목이 없습니다.</div>`;
+      } else {
+        itemListEl.innerHTML = state.items.map(item => {
+          const count = state.stats[item] || 0;
+          return `
+            <div class="item-card">
+              <span class="item-name">${escapeHtml(item)}</span>
+              <div>
+                <span class="item-stats">${count > 0 ? count + '회 당첨' : ''}</span>
+                <button class="btn-del" onclick="removeItem('${escapeHtml(item)}')">&times;</button>
+              </div>
             </div>
-        `).join('') || '<div style="text-align:center; padding: 20px; color:#d1d5db; font-size:0.8rem;">항목을 추가해주세요.</div>';
+          `;
+        }).join('');
+      }
+
+      // 2. 누적 내역 렌더링 (초기화 전까지 계속 유지)
+      const historyListEl = document.getElementById('historyList');
+      if (state.history.length === 0) {
+        historyListEl.innerHTML = `<li class="history-item" style="color:var(--text-sub); justify-content:center;">기록된 내역이 없습니다.</li>`;
+      } else {
+        historyListEl.innerHTML = state.history.map((item, idx) => {
+          const orderNum = state.history.length - idx;
+          return `
+            <li class="history-item">
+              <span class="history-index">#${orderNum}</span>
+              <span>${escapeHtml(item)}</span>
+            </li>
+          `;
+        }).join('');
+      }
     }
 
-    function pickOne() {
-        if (state.items.length === 0) return alert('항목을 먼저 추가해주세요!');
-        
-        // [수정 핵심] 화면 텍스트가 아닌, 내부 데이터(state.currentPick)를 기준으로 직전 항목 이관
-        if (state.currentPick && state.currentPick !== '-') {
-            state.lastPick = state.currentPick;
-        }
-
-        // 무작위 추첨
-        const idx = Math.floor(Math.random() * state.items.length);
-        const selected = state.items[idx];
-
-        // 상태 데이터 갱신
-        state.counts[selected] = (state.counts[selected] || 0) + 1;
-        state.currentPick = selected;
-        
-        saveData(); 
-        renderList();
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function resetCountsOnly() {
-        if(confirm('리스트는 유지하고 모든 당첨 횟수와 직전 기록을 초기화할까요?')) {
-            state.items.forEach(item => {
-                state.counts[item] = 0;
-            });
-            state.currentPick = '-';
-            state.lastPick = '-';
-            saveData(); 
-            renderList();
-        }
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
-    // 초기 실행 환경 구동
-    renderList();
-    updateUI();
-</script>
+    // 앱 시작
+    window.onload = init;
+  </script>
 </body>
 </html>
